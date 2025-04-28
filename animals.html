@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Факты о животных</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #e6f2ff;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            transition: all 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        #rejectName {
+            background-color: #f44336;
+        }
+        #animalImage {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 20px auto;
+            display: block;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+        .fact {
+            font-size: 16px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+            border-left: 4px solid #4CAF50;
+        }
+        .hidden {
+            display: none;
+        }
+        .name-options {
+            margin: 20px 0;
+            font-style: italic;
+            color: #555;
+            line-height: 1.6;
+        }
+        .animal-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .animal-btn {
+            width: 100%;
+            padding: 15px;
+            text-align: left;
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        #animalTitle {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        #translateBtn {
+            background-color: #3498db;
+        }
+        #backBtn {
+            background-color: #95a5a6;
+        }
+        .translation {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+    </style>
+</head>
+<body>
+<div id="welcomeContainer" class="container">
+    <h1>Добро пожаловать!</h1>
+    <div class="name-options">
+        <p>Я буду звать тебя <span id="randomName" style="font-weight:bold">...</span>, ок?</p>
+        <p>Ладно...</p>
+        <p>А может не надо?..</p>
+    </div>
+    <div>
+        <button id="acceptName">Да, отлично!</button>
+        <button id="rejectName">Нет, другое имя</button>
+    </div>
+</div>
+
+<div id="animalSelectionContainer" class="container hidden">
+    <h2>На чьей ты стороне?</h2>
+    <div class="animal-options">
+        <button id="dogBtn" class="animal-btn">🐶 Собаки</button>
+        <button id="catBtn" class="animal-btn">🐱 Кошки</button>
+        <button id="foxBtn" class="animal-btn">🦊 Лисы (???)</button>
+    </div>
+</div>
+
+<div id="animalFactContainer" class="container hidden">
+    <h2 id="animalTitle"></h2>
+    <img id="animalImage" referrerpolicy="no-referrer">
+    <div class="fact">
+        <p id="animalFact"></p>
+        <div id="animalFactRu" class="translation hidden">
+            <p id="translatedText"></p>
+            <button id="translateBtn">Скрыть перевод</button>
+        </div>
+        <button id="showTranslateBtn">Перевести на русский</button>
+    </div>
+    <button id="backBtn">Назад к выбору</button>
+</div>
+
+<script>
+    // Элементы DOM
+    const welcomeContainer = document.getElementById('welcomeContainer');
+    const animalSelectionContainer = document.getElementById('animalSelectionContainer');
+    const animalFactContainer = document.getElementById('animalFactContainer');
+    const randomNameSpan = document.getElementById('randomName');
+    const acceptNameBtn = document.getElementById('acceptName');
+    const rejectNameBtn = document.getElementById('rejectName');
+    const dogBtn = document.getElementById('dogBtn');
+    const catBtn = document.getElementById('catBtn');
+    const foxBtn = document.getElementById('foxBtn');
+    const animalTitle = document.getElementById('animalTitle');
+    const animalImage = document.getElementById('animalImage');
+    const animalFact = document.getElementById('animalFact');
+    const animalFactRu = document.getElementById('animalFactRu');
+    const translatedText = document.getElementById('translatedText');
+    const showTranslateBtn = document.getElementById('showTranslateBtn');
+    const translateBtn = document.getElementById('translateBtn');
+    const backBtn = document.getElementById('backBtn');
+
+    // Состояние приложения
+    let currentAnimal = '';
+    let currentFact = '';
+    let currentName = '';
+
+    // Список имен и их переводов
+    const namesAndTranslations = {
+        "Toilet Mail": "Почтовый Туалет",
+        "Puppy Solar": "Солнечный Щенок",
+        "Fluffy Cloud": "Пушистое Облако",
+        "Rainbow Spark": "Радужная Искра"
+    };
+
+    // Словарь переводов фактов
+    const factTranslations = {
+        // Факты о кошках
+        "A cat's purr may be a form of self-healing, as it can be a sign of nervousness as well as contentment.":
+            "Мурлыканье кошки может быть формой самолечения, так как оно может свидетельствовать как о нервозности, так и о довольстве.",
+        "Cats can rotate their ears 180 degrees.": "Кошки могут поворачивать уши на 180 градусов.",
+
+        // Факты о собаках
+        "All puppies are born deaf.": "Все щенки рождаются глухими.",
+        "Dogs can smell thousands of times better than humans.":
+            "Собаки чувствуют запахи в тысячи раз лучше, чем люди.",
+        "A dog's nose print is unique, much like a human's fingerprint.":
+            "Отпечаток носа собаки уникален, как отпечаток пальца человека.",
+
+        // Факты о лисах
+        "Foxes use the Earth's magnetic field to hunt.":
+            "Лисы используют магнитное поле Земли для охоты.",
+        "Foxes can make more than 40 different sounds.":
+            "Лисы могут издавать более 40 различных звуков.",
+        "A group of foxes is called a 'skulk' or 'leash'.":
+            "Группа лис называется 'тайком' или 'свора'."
+    };
+
+    // Запасные факты на случай проблем с API
+    const fallbackFacts = {
+        dog: [
+            "Dogs have been man's best friend for over 14,000 years.",
+            "The Basenji dog is the only breed that doesn't bark."
+        ],
+        cat: [
+            "Cats spend 70% of their lives sleeping.",
+            "A cat's nose is as unique as a human's fingerprint."
+        ],
+        fox: [
+            "Foxes are solitary animals unlike wolves which live in packs.",
+            "Arctic foxes don't shiver until temperatures drop to -70°C (-94°F)."
+        ]
+    };
+
+    // Запасные изображения
+    const fallbackImages = {
+        dog: "https://images.unsplash.com/photo-1586671267731-da2cf3ceeb80?w=500",
+        cat: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500",
+        fox: "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500"
+    };
+
+    // Функция для получения случайного имени
+    async function getRandomName() {
+        const names = Object.keys(namesAndTranslations);
+        return names[Math.floor(Math.random() * names.length)];
+    }
+
+    // Функция для отображения нового случайного имени
+    async function showNewRandomName() {
+        currentName = await getRandomName();
+        randomNameSpan.textContent = currentName;
+    }
+
+    // Функция для получения факта и изображения животного
+    async function getAnimalData(animal) {
+        try {
+            let apiUrl = '';
+            let imgUrl = '';
+            let title = '';
+
+            if (animal === 'dog') {
+                apiUrl = 'https://some-random-api.ml/facts/dog';
+                imgUrl = 'https://some-random-api.ml/img/dog';
+                title = 'Собака';
+            } else if (animal === 'cat') {
+                apiUrl = 'https://some-random-api.ml/facts/cat';
+                imgUrl = 'https://some-random-api.ml/img/cat';
+                title = 'Кошка';
+            } else if (animal === 'fox') {
+                apiUrl = 'https://some-random-api.ml/facts/fox';
+                imgUrl = 'https://some-random-api.ml/img/fox';
+                title = 'Лиса';
+            }
+
+            const [factResponse, imgResponse] = await Promise.all([
+                fetch(apiUrl),
+                fetch(imgUrl)
+            ]);
+
+            let factData, imgData;
+
+            // Обрабатываем ответ с фактом
+            if (factResponse.ok) {
+                factData = await factResponse.json();
+            } else {
+                // Используем запасные факты если API не отвечает
+                const facts = fallbackFacts[animal];
+                factData = { fact: facts[Math.floor(Math.random() * facts.length)] };
+            }
+
+            // Обрабатываем ответ с изображением
+            if (imgResponse.ok) {
+                imgData = await imgResponse.json();
+            } else {
+                // Используем запасные изображения
+                imgData = { link: fallbackImages[animal] };
+            }
+
+            return {
+                image: imgData.link,
+                fact: factData.fact,
+                title: title
+            };
+        } catch (error) {
+            console.error('Ошибка:', error);
+            // Полностью запасной вариант
+            const facts = fallbackFacts[animal];
+            return {
+                image: fallbackImages[animal],
+                fact: facts[Math.floor(Math.random() * facts.length)],
+                title: animal === 'dog' ? 'Собака' : animal === 'cat' ? 'Кошка' : 'Лиса'
+            };
+        }
+    }
+
+    // Функция для перевода текста
+    function translateFact(fact) {
+        return factTranslations[fact] || "Перевод недоступен";
+    }
+
+    // Инициализация приложения
+    showNewRandomName();
+
+    // Обработчики событий
+    acceptNameBtn.addEventListener('click', () => {
+        welcomeContainer.classList.add('hidden');
+        animalSelectionContainer.classList.remove('hidden');
+    });
+
+    rejectNameBtn.addEventListener('click', showNewRandomName);
+
+    dogBtn.addEventListener('click', async () => {
+        currentAnimal = 'dog';
+        await showAnimalFact();
+    });
+
+    catBtn.addEventListener('click', async () => {
+        currentAnimal = 'cat';
+        await showAnimalFact();
+    });
+
+    foxBtn.addEventListener('click', async () => {
+        currentAnimal = 'fox';
+        await showAnimalFact();
+    });
+
+    async function showAnimalFact() {
+        animalSelectionContainer.classList.add('hidden');
+        animalFactContainer.classList.remove('hidden');
+
+        const animalData = await getAnimalData(currentAnimal);
+        animalImage.src = animalData.image;
+        animalFact.textContent = animalData.fact;
+        animalTitle.textContent = animalData.title;
+        currentFact = animalData.fact;
+
+        // Устанавливаем перевод
+        translatedText.textContent = translateFact(currentFact);
+
+        // Сбрасываем состояние перевода
+        animalFactRu.classList.add('hidden');
+        showTranslateBtn.style.display = 'block';
+        showTranslateBtn.textContent = 'Перевести на русский';
+    }
+
+    backBtn.addEventListener('click', () => {
+        animalFactContainer.classList.add('hidden');
+        animalSelectionContainer.classList.remove('hidden');
+    });
+
+    showTranslateBtn.addEventListener('click', () => {
+        animalFactRu.classList.remove('hidden');
+        showTranslateBtn.style.display = 'none';
+    });
+
+    translateBtn.addEventListener('click', () => {
+        animalFactRu.classList.add('hidden');
+        showTranslateBtn.style.display = 'block';
+    });
+</script>
+</body>
+</html>
