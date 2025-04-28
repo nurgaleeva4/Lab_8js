@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Таблица людей</title>
+    <style>
+        table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+        td, th { border: 1px solid black; padding: 8px; text-align: left; }
+        .green { background-color: lightgreen; }
+        .yellow { background-color: lightyellow; }
+        .red { background-color: lightcoral; }
+    </style>
+</head>
+<body>
+
+<h1>Люди</h1>
+<button id="load">Загрузить</button>
+<select id="filter">
+    <option value="all">Все</option>
+    <option value="муж">Мужчины</option>
+    <option value="жен">Женщины</option>
+</select>
+<div id="table-container"></div>
+
+<script type="module">
+    import { getData } from './humansData.js';
+
+    let allPeople = [];
+
+    document.getElementById("load").onclick = async () => {
+        allPeople = await getData();
+        renderTable(allPeople);
+    };
+
+    document.getElementById("filter").onchange = function () {
+        const value = this.value;
+        if (value === "all") {
+            renderTable(allPeople);
+        } else {
+            renderTable(allPeople.filter(p => p.gender === value));
+        }
+    };
+
+    function renderTable(people) {
+        const container = document.getElementById("table-container");
+        container.innerHTML = "";
+
+        const table = document.createElement("table");
+        const header = table.insertRow();
+        ["Имя", "Фамилия", "Возраст", "Пол", "Адрес", "Телефон", "Действия"].forEach(text => {
+            const th = document.createElement("th");
+            th.textContent = text;
+            header.appendChild(th);
+        });
+
+        people.forEach((person, index) => {
+            const row = table.insertRow();
+            row.className = person.age < 18 ? "green" : person.age >= 60 ? "red" : "yellow";
+
+            Object.values(person).forEach(val => {
+                const cell = row.insertCell();
+                cell.textContent = val;
+            });
+
+            const actions = row.insertCell();
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "Удалить";
+            delBtn.onclick = () => {
+                allPeople.splice(index, 1);
+                renderTable(allPeople);
+            };
+
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Редактировать";
+            editBtn.onclick = () => {
+                const name = prompt("Новое имя", person.name);
+                if (name) {
+                    person.name = name;
+                    renderTable(allPeople);
+                }
+            };
+
+            actions.appendChild(delBtn);
+            actions.appendChild(editBtn);
+        });
+
+        container.appendChild(table);
+    }
+</script>
+</body>
+</html>
