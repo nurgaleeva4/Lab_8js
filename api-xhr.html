@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Requests Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<h1>API Responses</h1>
+<div id="output"></div>
+
+<script>
+    const apiUrls = [
+        'https://api.coingecko.com/api/v3/ping',
+        'https://dog.ceo/api/breeds/image/random',
+        'https://api.agify.io?name=michael',
+        'https://api.genderize.io?name=alex',
+        'https://api.nationalize.io?name=nathan'
+    ];
+
+    const output = document.getElementById('output');
+
+    // 1. Базовая функция request с коллбэком
+    function request(url, callback) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                callback(null, JSON.parse(xhr.responseText));
+            } else {
+                callback(new Error(`Request failed with status ${xhr.status}`));
+            }
+        };
+        xhr.onerror = function() {
+            callback(new Error('Request failed'));
+        };
+        xhr.send();
+    }
+
+    // 2. Функция requestPromise
+    function requestPromise(url) {
+        return new Promise((resolve, reject) => {
+            request(url, (error, data) => {
+                if (error) reject(error);
+                else resolve(data);
+            });
+        });
+    }
+
+    // 3. Выполнение запросов с async/await
+    async function makeRequests() {
+        try {
+            output.innerHTML += '<h2>Starting requests...</h2>';
+
+            for (let i = 0; i < apiUrls.length; i++) {
+                const data = await requestPromise(apiUrls[i]);
+                output.innerHTML += `
+            <h3>Request ${i + 1} to ${apiUrls[i]}</h3>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+            }
+
+            output.innerHTML += '<h2>All requests completed!</h2>';
+        } catch (error) {
+            output.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+
+    // Запускаем запросы
+    makeRequests();
+</script>
+</body>
+</html>
